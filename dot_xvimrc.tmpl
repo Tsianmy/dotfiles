@@ -11,9 +11,9 @@ set ignorecase
 set backspace=2
 set ruler
 
-{{ if eq .chezmoi.os "darwin" -}}
 set clipboard+=unnamedplus
 
+{{ if eq .chezmoi.os "darwin" -}}
 if has("gui_running")
     if has("gui_macvim")
         set guifont=UbuntuMono-Regular:h18

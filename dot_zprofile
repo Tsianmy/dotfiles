@@ -1,0 +1,3 @@
+eval $(/opt/homebrew/bin/brew shellenv) #ckbrew
+
+export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$PATH"

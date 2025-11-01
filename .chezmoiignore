@@ -4,6 +4,5 @@
 .zprofile
 {{ else if ne .chezmoi.os "windows" }}
 .config/mpv/scripts/open-file-dialog.lua
-AppData/Local/nvim
-AppData/Roaming/mpv
+AppData
 {{ end }}

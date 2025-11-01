@@ -9,7 +9,11 @@ end
 
 ---- neovide ----
 if vim.g.neovide then
-    vim.o.guifont = 'Ubuntu Mono:h18'
+    if vim.fn.has('windows') then
+        vim.o.guifont = 'Ubuntu Mono:h16'
+    else
+        vim.o.guifont = 'Ubuntu Mono:h18'
+    end
     vim.o.linespace = 4
     --vim.o.hidden = false
     --vim.o.confirm = true

@@ -2,7 +2,17 @@
 {{ if ne .chezmoi.os "darwin" }}
 .zshrc
 .zprofile
-{{ else if ne .chezmoi.os "windows" }}
-.config/mpv/scripts/open-file-dialog.lua
-AppData
 {{ end }}
+{{ if ne .chezmoi.os "windows" }}
+.config/mpv/scripts/open-file-dialog.lua
+AppData/
+{{ end }}
+{{ if ne .chezmoi.os "linux" }}
+.bashrc
+.bash_profile
+.tmux.conf
+{{ else }}
+.config/mpv/
+{{ end }}
+.oh-my-zsh/cache/
+.oh-my-bash/cache/

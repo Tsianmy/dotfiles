@@ -11,8 +11,9 @@ set ignorecase
 set backspace=2
 set ruler
 
+{{- if ne .chezmoi.os "linux" -}}
 set clipboard+=unnamedplus
-
+{{ end }}
 {{ if eq .chezmoi.os "darwin" -}}
 if has("gui_running")
     if has("gui_macvim")
@@ -20,4 +21,4 @@ if has("gui_running")
         set linespace=4
     endif
 endif
-{{ end -}}
+{{- end }}

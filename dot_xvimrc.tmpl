@@ -10,8 +10,7 @@ set autoindent
 set ignorecase
 set backspace=2
 set ruler
-
-{{- if ne .chezmoi.os "linux" -}}
+{{ if ne .chezmoi.os "linux" -}}
 set clipboard+=unnamedplus
 {{ end }}
 {{ if eq .chezmoi.os "darwin" -}}

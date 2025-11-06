@@ -11,7 +11,7 @@ end
 
 ---- neovide ----
 if vim.g.neovide then
-    if vim.fn.has('windows') then
+    if vim.loop.os_uname().sysname == "Windows" then
         vim.o.guifont = 'Ubuntu Mono:h16'
     else
         vim.o.guifont = 'Ubuntu Mono:h18'

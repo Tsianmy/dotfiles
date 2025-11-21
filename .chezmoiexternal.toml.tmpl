@@ -4,6 +4,11 @@
     url = "https://github.com/ohmyzsh/ohmyzsh/archive/master.tar.gz"
     exact = true
     stripComponents = 1
+[".local/nvim"]
+    type = "archive"
+    url = "https://github.com/neovim/neovim/releases/latest/download/nvim-macos-arm64.tar.gz"
+    exact = true
+    stripComponents = 1
 {{ end }}
 {{ if eq .chezmoi.os "linux" }}
 [".oh-my-bash"]

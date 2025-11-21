@@ -1,7 +1,7 @@
 .DS_Store
 {{ if ne .chezmoi.os "darwin" }}
-.zshrc
-.zprofile
+.zshenv
+.zsh/
 {{ end }}
 {{ if ne .chezmoi.os "windows" }}
 .config/mpv/scripts/open-file-dialog.lua
@@ -15,4 +15,5 @@ AppData/
 .config/mpv/
 {{ end }}
 .oh-my-zsh/cache/
+.zsh/ohmyzsh/cache/
 .oh-my-bash/cache/

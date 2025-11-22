@@ -1,2 +1,3 @@
 ZDOTDIR="$HOME/.zsh"
+HISTFILE="$ZDOTDIR/.zsh_history"
 XDG_CONFIG_HOME="$HOME/.config"

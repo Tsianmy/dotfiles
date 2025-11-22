@@ -1,5 +1,14 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+function append_path() {
+    if [[ -d "$1" && ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH"
+    fi
+}
+append_path "$HOME/.local/bin"
+append_path $(dirname $SHELL)
+append_path "$HOME/.local/nvim/bin"
+append_path "$HOME/.pixi/bin"
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.zsh/ohmyzsh"
@@ -8,7 +17,11 @@ export ZSH="$HOME/.zsh/ohmyzsh"
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+{{ if eq .chezmoi.os "darwin" -}}
 ZSH_THEME="random"
+{{ else -}}
+ZSH_THEME="ys"
+{{- end }}
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -70,7 +83,7 @@ DISABLE_MAGIC_FUNCTIONS="true"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(git chezmoi)
 
 export ZSHZ_DATA=$ZDOTDIR
 
@@ -85,10 +98,15 @@ setopt magic_equal_subst
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-    export EDITOR='vim'
+# if [[ -n $SSH_CONNECTION ]]; then
+#     export EDITOR='vim'
+# else
+#     export EDITOR='nvim'
+# fi
+if [[ -x "$(command -v nvim)" ]]; then
+    export EDITOR="nvim"
 else
-    export EDITOR='nvim'
+    export EDITOR="vim"
 fi
 
 # Compilation flags
@@ -110,7 +128,10 @@ alias vim='nvim'
 alias rsynca='rsync -h --progress --partial --exclude "*.DS_Store"'
 alias pixr='pixi run'
 
+{{ if eq .chezmoi.os "darwin" -}}
 export HOMEBREW_NO_AUTO_UPDATE=true
+
+{{ end -}}
 
 function proxy_on() {
     export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890
@@ -123,3 +144,5 @@ function proxy_off() {
     unset https_proxy
     echo -e "unset proxy"
 }
+
+[[ -f "$HOME/conda_init.sh" ]] && source $HOME/conda_init.sh

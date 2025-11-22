@@ -1,9 +1,9 @@
-{{ if eq .chezmoi.os "darwin" }}
 [".zsh/ohmyzsh"]
     type = "archive"
     url = "https://github.com/ohmyzsh/ohmyzsh/archive/master.tar.gz"
     exact = true
     stripComponents = 1
+{{ if eq .chezmoi.os "darwin" }}
 [".local/nvim"]
     type = "archive"
     url = "https://github.com/neovim/neovim/releases/latest/download/nvim-macos-arm64.tar.gz"
@@ -11,9 +11,9 @@
     stripComponents = 1
 {{ end }}
 {{ if eq .chezmoi.os "linux" }}
-[".oh-my-bash"]
+[".local/nvim"]
     type = "archive"
-    url = "https://github.com/ohmybash/oh-my-bash/archive/master.tar.gz"
+    url = "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
     exact = true
     stripComponents = 1
 {{ end }}

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+echo ${0##*/}
+
+{{ if and (eq .chezmoi.os "linux") (not (lookPath "zsh")) -}}
+
+# {{ getRedirectedURL "https://github.com/romkatv/zsh-bin/releases/latest" }}
+url="https://raw.githubusercontent.com/romkatv/zsh-bin/master/install"
+zsh_dir="$HOME/.local/zsh"
+if [ "$(command -v curl)" ]; then
+    bash -c "$(curl -fsSL $url)" -- -d $zsh_dir -e no
+elif [ "$(command -v wget)" ]; then
+    bash -c "$(wget -O- $url)" -- -d $zsh_dir -e no
+else
+    echo "To install zsh, you must have curl or wget installed." >&2
+    exit 1
+fi
+
+{{- end -}}

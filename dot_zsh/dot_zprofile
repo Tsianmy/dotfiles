@@ -1,5 +1,0 @@
-eval $(/opt/homebrew/bin/brew shellenv) #ckbrew
-
-[[ -d "$HOME/.local/bin" ]] && PATH="$HOME/.local/bin:$PATH"
-[[ -d "$HOME/.local/nvim/bin" ]] && PATH="$HOME/.local/nvim/bin:$PATH"
-[[ -d "$HOME/.pixi/bin" ]] && PATH="$HOME/.pixi/bin:$PATH"

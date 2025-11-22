@@ -10,6 +10,7 @@ AppData/
 .bashrc
 .bash_profile
 .tmux.conf
+.chezmoiscripts/run_once_before_00-install-zsh.sh.tmpl
 {{ else }}
 .config/mpv/
 {{ end }}

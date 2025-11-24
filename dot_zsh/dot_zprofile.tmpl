@@ -2,3 +2,13 @@
 eval $(/opt/homebrew/bin/brew shellenv) #ckbrew
 
 {{ end -}}
+
+function append_path() {
+    if [[ -d "$1" && ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH"
+    fi
+}
+append_path "$HOME/.local/bin"
+append_path $(dirname $SHELL)
+append_path "$HOME/.local/nvim/bin"
+append_path "$HOME/.pixi/bin"

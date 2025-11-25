@@ -1,8 +1,10 @@
+{{ if ne .chezmoi.os "windows" }}
 [".zsh/ohmyzsh"]
     type = "archive"
     url = "https://github.com/ohmyzsh/ohmyzsh/archive/master.tar.gz"
     exact = true
     stripComponents = 1
+{{ end }}
 {{ if eq .chezmoi.os "darwin" }}
 [".local/nvim"]
     type = "archive"

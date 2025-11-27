@@ -3,11 +3,6 @@ return {
     main = "ibl",
     ---@module "ibl"
     ---@type ibl.config
+    cond = not vim.g.vscode,
     opts = {},
-    cond = function()
-        return not vim.g.vscode
-    end,
-    config = function()
-        require("ibl").setup()
-    end
 }

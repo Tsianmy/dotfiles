@@ -1,12 +1,7 @@
 return {
     'kevinhwang91/nvim-hlslens',
     event = "VeryLazy",
-    config = function()
-        require('hlslens').setup {
-            calm_down = true,
-            nearest_only = true,
-            nearest_float_when = 'never'
-        }
+    opts = function(_, opts)
         local kopts = {noremap = true, silent = true}
         vim.api.nvim_set_keymap('n', 'n',
         [[<Cmd>execute('normal! ' . v:count1 . 'n')<CR><Cmd>lua require('hlslens').start()<CR>]],
@@ -20,5 +15,10 @@ return {
         vim.api.nvim_set_keymap('n', 'g#', [[g#<Cmd>lua require('hlslens').start()<CR>]], kopts)
 
         vim.api.nvim_set_keymap('n', '<Leader>l', '<Cmd>noh<CR>', kopts)
+        return {
+            calm_down = true,
+            nearest_only = true,
+            nearest_float_when = 'never'
+        }
     end
 }

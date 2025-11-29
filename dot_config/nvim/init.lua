@@ -1,7 +1,10 @@
 vim.cmd('source ~/.xvimrc')
 require("config.lazy")
 
-if not vim.g.vscode then
+if vim.g.vscode then
+    vim.keymap.set({ 'n', 'v' }, 'u', function() require('vscode').call('undo') end)
+    vim.keymap.set({ 'n', 'v' }, '<C-r>', function() require('vscode').call('redo') end)
+else
     vim.o.termguicolors = true
     vim.loop.fs_write(2, "\27Ptmux;\27\27]11;?\7\27\\", -1, nil)
     vim.opt.list = true

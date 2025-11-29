@@ -7,7 +7,6 @@ return {
             local chezmoi_apply = require("nvim-chezmoi.chezmoi.commands.apply")
             local chezmoi_exec_tmpl =
                 require("nvim-chezmoi.chezmoi.commands.execute_template")
-            local utils = require("nvim-chezmoi.core.utils")
 
             -- Create autocmds and cmds
             chezmoi_exec_tmpl:init(M.opts.execute_template)
@@ -60,19 +59,21 @@ return {
                 )
             end
         end
-
-        vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+        vim.api.nvim_create_autocmd({ "BufRead" }, {
             callback = function(ev)
                 require("nvim-chezmoi.chezmoi.commands.source_path"):async(
                     { ev.file },
                     function(result)
-                        if not result.success then
-                            return
+                        if result.success then
+                            local file = result.data[1]
+                            if vim.uv.fs_stat(file) then
+                                vim.cmd.edit(file)
+                            end
                         end
-                        vim.cmd.edit(result.data[1])
                     end
                 )
             end
         })
+
     end,
 }

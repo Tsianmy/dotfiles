@@ -7,6 +7,12 @@ return {
             search = { enabled = false },
             char = {
                 keys = { "f", "F", ";", "," },
+                char_actions = function(motion)
+                    return {
+                        [";"] = "next", -- set to `right` to always go right
+                        [","] = "prev", -- set to `left` to always go left
+                    }
+                end,
             }
         }
     },

@@ -17,6 +17,7 @@ return {
         vim.api.nvim_set_keymap('n', '<Leader>l', '<Cmd>noh<CR>', kopts)
         return {
             calm_down = true,
+            enable_incsearch = false,
             nearest_only = true,
             nearest_float_when = 'never'
         }

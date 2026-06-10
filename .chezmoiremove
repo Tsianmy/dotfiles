@@ -1,0 +1,6 @@
+.z
+.zcompdump*
+.zprofile
+.zsh_history
+.zshrc
+.oh-my-zsh

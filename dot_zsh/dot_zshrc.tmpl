@@ -117,7 +117,7 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 alias vim='nvim'
-alias rsynca='rsync -h -c --progress --partial --exclude "*.DS_Store"'
+alias rsynca='rsync -h -c --progress --partial --exclude "*.DS_Store" --exclude ".stignore" --exclude ".stfolder"'
 alias pixr='pixi run'
 
 function pixact() {

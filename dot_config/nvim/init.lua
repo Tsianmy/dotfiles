@@ -2,8 +2,10 @@ vim.cmd('source ~/.xvimrc')
 require("config.lazy")
 
 if vim.g.vscode then
-    vim.keymap.set({ 'n', 'v' }, 'u', function() require('vscode').call('undo') end)
-    vim.keymap.set({ 'n', 'v' }, '<C-r>', function() require('vscode').call('redo') end)
+    -- vim.keymap.set({ 'n', 'v' }, 'u', function() require('vscode').call('undo') end)
+    -- vim.keymap.set({ 'n', 'v' }, '<C-r>', function() require('vscode').call('redo') end)
+    vim.keymap.set("n","u","<Cmd>call VSCodeNotify('undo')<CR>")
+    vim.keymap.set("n","<C-r>","<Cmd>call VSCodeNotify('redo')<CR>") 
 else
     vim.o.termguicolors = true
     vim.loop.fs_write(2, "\27Ptmux;\27\27]11;?\7\27\\", -1, nil)

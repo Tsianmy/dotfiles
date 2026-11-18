@@ -1,6 +1,6 @@
 zsh_bin="$(command -v zsh)"
 zsh_bin="${zsh_bin:-$HOME/.local/zsh/bin/zsh}"
-if [ -x "$zsh_bin" ]; then
+if [[ $- == *i* && -x "$zsh_bin" ]]; then
     export SHELL=$zsh_bin
     exec $SHELL -l
 fi

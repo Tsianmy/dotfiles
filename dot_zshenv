@@ -1,3 +1,13 @@
 ZDOTDIR="$HOME/.zsh"
 HISTFILE="$ZDOTDIR/.zsh_history"
 XDG_CONFIG_HOME="$HOME/.config"
+
+typeset -U path fpath
+path=(
+    "$HOME/.local/bin"
+    "$HOME/.local/nvim/bin"
+    "$HOME/.pixi/bin"
+    $(dirname $SHELL)
+    $path
+)
+export PATH

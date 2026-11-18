@@ -15,7 +15,11 @@
 {{ if eq .chezmoi.os "linux" }}
 [".local/nvim"]
     type = "archive"
+{{ if eq .chezmoi.arch "arm64" }}
+    url = "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz"
+{{ else }}
     url = "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+{{ end }}
     exact = true
     stripComponents = 1
 {{ end }}

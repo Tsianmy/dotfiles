@@ -1,79 +1,201 @@
 return {
     "andre-kotake/nvim-chezmoi",
-    opts = function(_, opts)
-        local M = require("nvim-chezmoi")
-        local setup_plugin = function()
-            local chezmoi_edit = require("nvim-chezmoi.chezmoi.commands.edit")
-            local chezmoi_apply = require("nvim-chezmoi.chezmoi.commands.apply")
-            local chezmoi_exec_tmpl =
-                require("nvim-chezmoi.chezmoi.commands.execute_template")
+    dependencies = {
+        { "folke/snacks.nvim" },
+    },
+    -- BufReadPre catches the first file opened on the command line;
+    -- VimEnter makes the :Chezmoi* commands available in empty sessions.
+    event = { "BufReadPre", "VimEnter" },
+    opts = {},
+    config = function(_, opts)
+        require("nvim-chezmoi").setup(opts)
 
-            -- Create autocmds and cmds
-            chezmoi_exec_tmpl:init(M.opts.execute_template)
-            chezmoi_edit:init(M.opts)
-            chezmoi_edit:create_user_commands()
-            chezmoi_apply:create_user_commands()
+        local source_path_cmd =
+            require("nvim-chezmoi.chezmoi.commands.source_path")
+        local managed_cmd = require("nvim-chezmoi.chezmoi.commands.managed")
+        local helper = require("nvim-chezmoi.chezmoi.helper")
 
-            vim.api.nvim_create_augroup("NvimChezmoi", {})
-            vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-                group = "NvimChezmoi",
-                pattern = M.opts.source_path .. "/*",
-                callback = function(ev)
-                    chezmoi_edit:on_edit(ev.buf)
-                end,
-            })
+        local CACHE_VERSION = 1
+        local cache_file = vim.fs.joinpath(
+            vim.fn.stdpath("cache"),
+            "nvim-chezmoi",
+            "managed.json"
+        )
 
-            require("nvim-chezmoi.core.telescope").init(M.opts.source_path)
-        end
-        M.setup = function(opts)
-            M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
+        ---@type table<string, string>|nil target path -> source state path
+        local managed = nil
+        local cached_source_path = nil
 
-            if M.opts.source_path ~= nil then
-                setup_plugin()
-            else
-                require("nvim-chezmoi.chezmoi.commands.source_path"):async(
-                    {},
-                    function(result)
-                        if not result.success then
-                            return
-                        end
-
-                        M.opts.source_path = result.data[1]
-                        setup_plugin()
-
-                        -- Create buf user commands for already opened source file buffer.
-                        local utils = require("nvim-chezmoi.core.utils")
-                        for _, buf in ipairs(vim.fn.getbufinfo({ buf = "buflisted" })) do
-                            local file_path = vim.fn.bufname(buf.bufnr)
-                            -- Only check buffers with a valid file path
-                            if
-                                file_path ~= "" and utils.is_child_of(M.opts.source_path, file_path)
-                            then
-                                vim.api.nvim_exec_autocmds({ "BufRead" }, {
-                                    group = "NvimChezmoi",
-                                    buffer = buf.bufnr,
-                                })
-                            end
-                        end
-                  end
-                )
+        local function load_cache()
+            local ok, lines = pcall(vim.fn.readfile, cache_file)
+            if not ok or #lines == 0 then
+                return
             end
+
+            local decoded_ok, data =
+                pcall(vim.json.decode, table.concat(lines, "\n"))
+            if
+                not decoded_ok
+                or type(data) ~= "table"
+                or data.version ~= CACHE_VERSION
+                or type(data.files) ~= "table"
+            then
+                return
+            end
+
+            managed = data.files
+            cached_source_path = data.source_path
         end
-        vim.api.nvim_create_autocmd({ "BufRead" }, {
-            callback = function(ev)
-                require("nvim-chezmoi.chezmoi.commands.source_path"):async(
-                    { ev.file },
-                    function(result)
-                        if result.success then
-                            local file = result.data[1]
-                            if vim.uv.fs_stat(file) then
-                                vim.cmd.edit(file)
-                            end
-                        end
+        load_cache()
+
+        local refreshing = false
+        local function refresh_managed()
+            if refreshing then
+                return
+            end
+            refreshing = true
+
+            managed_cmd:async({}, function(result)
+                refreshing = false
+                if not result.success then
+                    return
+                end
+
+                local map = {}
+                for _, file in pairs(result.data) do
+                    if file.absolute and file.sourceAbsolute then
+                        map[vim.fs.normalize(file.absolute)] = file.sourceAbsolute
                     end
-                )
-            end
-        })
+                end
 
+                if not next(map) then
+                    return
+                end
+
+                managed = map
+                cached_source_path = require("nvim-chezmoi").opts.source_path
+
+                pcall(vim.fn.mkdir, vim.fs.dirname(cache_file), "p")
+                pcall(vim.fn.writefile, {
+                    vim.json.encode({
+                        version = CACHE_VERSION,
+                        source_path = cached_source_path,
+                        files = map,
+                    }),
+                }, cache_file)
+            end)
+        end
+
+        local refresh_scheduled = false
+        local function schedule_refresh()
+            if refresh_scheduled then
+                return
+            end
+            refresh_scheduled = true
+
+            -- Give the initial target -> source lookup a head start.
+            vim.defer_fn(function()
+                refresh_scheduled = false
+                refresh_managed()
+            end, 1500)
+        end
+
+        if not managed then
+            schedule_refresh()
+        end
+
+        vim.api.nvim_create_user_command(
+            "ChezmoiRefreshManagedCache",
+            refresh_managed,
+            { desc = "Refresh the nvim-chezmoi managed files cache" }
+        )
+
+        local pending = {}
+        local group = vim.api.nvim_create_augroup(
+            "NvimChezmoiFollowSource",
+            { clear = true }
+        )
+
+        local function is_under(root, file)
+            root = vim.fs.normalize(root):gsub("/+$", "")
+            file = vim.fs.normalize(file)
+
+            return file == root or file:sub(1, #root + 1) == root .. "/"
+        end
+
+        ---Replace the target buffer with its source state file.
+        local function follow(buf, file, source)
+            if source == nil or source == "" or source == file then
+                return
+            end
+            source = vim.fs.normalize(source)
+
+            -- The user may have switched buffers while chezmoi was running.
+            if
+                not vim.api.nvim_buf_is_valid(buf)
+                or vim.api.nvim_get_current_buf() ~= buf
+                or vim.api.nvim_buf_get_name(buf) ~= file
+            then
+                return
+            end
+
+            if not vim.uv.fs_stat(source) then
+                return
+            end
+
+            if helper.is_encrypted(source) then
+                -- Let the plugin decrypt it into a scratch buffer.
+                require("nvim-chezmoi.chezmoi.commands.edit"):exec(file)
+            else
+                vim.cmd.edit({ args = { vim.fn.fnameescape(source) } })
+            end
+        end
+
+        vim.api.nvim_create_autocmd("BufReadPost", {
+            group = group,
+            callback = function(ev)
+                local buf = ev.buf
+                local file = vim.api.nvim_buf_get_name(buf)
+
+                if
+                    file == ""
+                    or vim.bo[buf].buftype ~= ""
+                    or vim.fn.isdirectory(file) == 1
+                then
+                    return
+                end
+
+                -- Do not redirect buffers that already are source state files.
+                local source_root =
+                    require("nvim-chezmoi").opts.source_path or cached_source_path
+                if source_root and is_under(source_root, file) then
+                    return
+                end
+
+                local normalized = vim.fs.normalize(file)
+                local source = managed and managed[normalized]
+
+                if source and vim.uv.fs_stat(source) then
+                    follow(buf, file, source)
+                    return
+                end
+
+                -- Cache miss or stale entry: ask chezmoi, then refresh the cache.
+                if pending[normalized] then
+                    return
+                end
+                pending[normalized] = true
+
+                source_path_cmd:async({ file }, function(result)
+                    pending[normalized] = nil
+                    if not result.success then
+                        return
+                    end
+
+                    follow(buf, file, result.data[1])
+                    schedule_refresh()
+                end)
+            end,
+        })
     end,
 }
